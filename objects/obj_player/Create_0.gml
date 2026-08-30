@@ -4,6 +4,7 @@ idle_state   = new state();
 crouch_state = new state();
 walk_state   = new state();
 jump_state   = new state();
+stair_state  = new state();
 
 #endregion
 
@@ -11,7 +12,11 @@ jump_state   = new state();
 
 img_ind = 0;
 xscale = image_xscale;
-colliders = [obj_collider];
+
+collider_layer = layer_tilemap_get_id("Level");
+stair_layer    = layer_tilemap_get_id("Stairs");
+
+colliders = [obj_collider, collider_layer];
 
 //inputs
 up        = noone;
@@ -196,7 +201,10 @@ walk_state.run = function () {
     }
     
     //caindo
-    if (!ground) { state_change(jump_state); }
+    if (!ground) { 
+        state_change(jump_state);
+        hspd = 0; 
+    }
 }
 
 walk_state.finish = function () {}
