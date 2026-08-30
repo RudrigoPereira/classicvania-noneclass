@@ -25,6 +25,10 @@ subweapon = noone;
 //variável para saber se o player está atacando
 attacking = false;
 
+my_whip = noone;
+whip_x  = 0;
+whip_y  = 0;
+
 //movimentação
 hspd     = 0;
 max_hspd = 1;
@@ -69,14 +73,28 @@ adjusts_xscale = function () {
     if (hspd != 0) { xscale = sign(hspd); }
 }
 
+update_pos_whip = function () {
+    if (instance_exists(my_whip)) {
+        whip_x    = x - 9 * xscale;
+        whip_y    = y - sprite_yoffset + sprite_get_bbox_top(sprite_index) + 9;
+        my_whip.x = whip_x;
+        my_whip.y = whip_y;
+    }
+}
+
 create_attack = function () {
     if (!attacking) {
         if (attack) {
             attacking   = true;
             image_index = 0;
+            
+            //criando o chicote
+            whip_x = x - 9 * xscale;
+            whip_y = y - sprite_yoffset + sprite_get_bbox_top(sprite_index) + 9;
+            my_whip = instance_create_depth(whip_x, whip_y, depth + 1, obj_whip, { image_xscale : xscale });
         }
     } else {
-    	switch (current_state) {
+        switch (current_state) {
         	case idle_state:   sprite_index = spr_player_attack; break;
         	case crouch_state: sprite_index = spr_player_crouch_attack ; break;
         	case walk_state:   sprite_index = spr_player_attack; break;
