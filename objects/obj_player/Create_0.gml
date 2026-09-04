@@ -43,6 +43,8 @@ grav     = 0.2;
 
 ground = false;
 
+stair_ang = 0;
+
 #endregion
 
 #region MÉTODOS
@@ -118,6 +120,49 @@ create_attack = function () {
     }
 }
 
+entering_stairs = function () {
+    var _stair = collision_rectangle(x - (xscale * 4), y - 4, x + (xscale * 10), y + 4, stair_layer, false, true);
+    
+    if (_stair) {
+    	show_debug_message("estou nas escadas");
+    } else {
+    	show_debug_message("não estou nas escadas");
+        return false;
+    }
+    
+    //checando a direção das escadas
+    var _ang = 0;
+    
+    for (var i = 45; i < 360; i += 90) {
+    	var _x = x + lengthdir_x(60, i);
+    	var _y = y + lengthdir_y(60, i);
+        
+        var _col = collision_circle(_x, _y, 2, stair_layer, false, true);
+        
+        if (_col) {
+        	show_debug_message(i);
+            _ang = i;
+        }
+    }
+    
+    if (_ang == 0) {
+    	return false;
+    }
+    
+    stair_ang = _ang;
+    
+    if (up && _ang < 140) {
+    	//estou subindo
+        return true;
+    }
+    
+    if (down && _ang > 140) {
+    	//estou descendo
+        stair_ang += 180;
+        return true;
+    }
+}
+
 #endregion
 
 #region ESTADOS
@@ -139,6 +184,11 @@ idle_state.run = function () {
     
     //andando
     if (right xor left && !attacking) { state_change(walk_state); }
+    
+    //entrando nas escadas
+    if (!attacking) { 
+        if (entering_stairs()) { state_change(stair_state); } 
+    }
     
     //pulando
     if (jump) {
@@ -188,6 +238,9 @@ walk_state.run = function () {
     //atacando
     create_attack();
     
+    //entrando nas escadas
+    if (!attacking) { entering_stairs(); }
+    
     //parando ao atacar
     if (attacking) { hspd = 0; }
     
@@ -228,6 +281,9 @@ jump_state.run = function () {
     //atacando
     create_attack();
     
+    //entrando nas escadas
+    entering_stairs();
+    
     //parando
     if (ground) { state_change(idle_state); }
 }
@@ -237,6 +293,46 @@ jump_state.finish = function () {
     hspd = 0; 
 }
 
+#endregion
+
+#region STAIR
+stair_state.start = function () {
+    //parei de colidir com tudo
+    colliders = [];
+    sprite_index = up ? spr_player_stairs_up : spr_player_stairs_down;
+}
+
+stair_state.run = function () {
+    var _hspd = lengthdir_x(1, stair_ang);
+    var _vspd = lengthdir_y(1, stair_ang);
+    
+    hspd = 0;
+    vspd = 0;
+    image_speed = 0;
+    
+    if (up) {
+        image_speed = 1;
+    	hspd = _hspd;
+        vspd = _vspd;
+        sprite_index = spr_player_stairs_up;
+    } 
+    
+    if (down) {
+        image_speed = 1;
+    	hspd = -_hspd;
+        vspd = -_vspd;
+        sprite_index = spr_player_stairs_down;
+    } 
+    
+    if (keyboard_check_pressed(vk_backspace)) {
+    	state_change(idle_state);
+    }
+}
+
+stair_state.finish = function () {
+    //saindo do estado eu volto a colidir
+    colliders = [obj_collider, collider_layer];
+}
 #endregion
 
 #endregion
