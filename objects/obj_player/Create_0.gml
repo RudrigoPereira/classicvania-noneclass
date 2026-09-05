@@ -91,15 +91,19 @@ update_pos_whip = function () {
 }
 
 create_attack = function () {
+    static _weapon = obj_whip;
+    
     if (!attacking) {
-        if (attack) {
+        if (attack or subweapon) {
+            if (subweapon) { _weapon = obj_init_subweapon; }
+            
             attacking   = true;
             image_index = 0;
             
             //criando o chicote
             whip_x = x - 9 * xscale;
             whip_y = y - sprite_yoffset + sprite_get_bbox_top(sprite_index) + 9;
-            my_whip = instance_create_depth(whip_x, whip_y, depth + 1, obj_whip, { image_xscale : xscale });
+            my_whip = instance_create_depth(whip_x, whip_y, 0, _weapon, { image_xscale : xscale });
         }
     } else {
         switch (current_state) {

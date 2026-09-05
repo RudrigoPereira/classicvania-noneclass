@@ -1,3 +1,12 @@
+enum SUBWEAPON {
+    AXE,
+    BOOMERANG,
+    HOLYWATER,
+    KNIFE
+}
+
+global.subweapon = SUBWEAPON.AXE;
+
 function finished_animation(){
     if (img_ind > image_index) {
     	//terminou a animação
