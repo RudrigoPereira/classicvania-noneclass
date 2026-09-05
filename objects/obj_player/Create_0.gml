@@ -44,6 +44,7 @@ grav     = 0.2;
 ground = false;
 
 stair_ang = 0;
+stair_up = false;
 
 #endregion
 
@@ -106,6 +107,7 @@ create_attack = function () {
         	case crouch_state: sprite_index = spr_player_crouch_attack ; break;
         	case walk_state:   sprite_index = spr_player_attack; break;
         	case jump_state:   sprite_index = (vspd < 0) ? spr_player_stairs_attack_up : spr_player_stairs_attack_down; break;
+        	case stair_state:  sprite_index = stair_up ? spr_player_stairs_attack_up : spr_player_stairs_attack_down; break;
         }
         
         if (finished_animation()) {
@@ -115,6 +117,7 @@ create_attack = function () {
             	case idle_state:   sprite_index = spr_player_idle; break;
             	case crouch_state: sprite_index = spr_player_crouch; break;
             	case jump_state:   sprite_index = spr_player_jump; break;
+            	case stair_state:  sprite_index = stair_up ? spr_player_stairs_up : spr_player_stairs_down; break;
             }
         }
     }
@@ -153,12 +156,14 @@ entering_stairs = function () {
     
     if (up && _ang < 140) {
     	//estou subindo
+        stair_up = true;
         return true;
     }
     
     if (down && _ang > 140) {
     	//estou descendo
         stair_ang += 180;
+        stair_up = false;
         return true;
     }
 }
@@ -239,7 +244,9 @@ walk_state.run = function () {
     create_attack();
     
     //entrando nas escadas
-    if (!attacking) { entering_stairs(); }
+    if (!attacking) { 
+        if (entering_stairs()) { state_change(stair_state); } 
+    }
     
     //parando ao atacar
     if (attacking) { hspd = 0; }
@@ -282,7 +289,7 @@ jump_state.run = function () {
     create_attack();
     
     //entrando nas escadas
-    entering_stairs();
+    if (entering_stairs()) { state_change(stair_state); }
     
     //parando
     if (ground) { state_change(idle_state); }
@@ -299,29 +306,90 @@ jump_state.finish = function () {
 stair_state.start = function () {
     //parei de colidir com tudo
     colliders = [];
+    
+    depth = 200;
     sprite_index = up ? spr_player_stairs_up : spr_player_stairs_down;
+    
+    var _x = x div 8;
+    var _y = (y + down-up) div 8;
+    x = _x * 8;
+    
+    var _ang = stair_up ? stair_ang : stair_ang - 180;
+    var _marg = 8;
+    
+    switch (_ang) {
+    	case 45:  _marg = 4; break;
+        case 135: _marg = 12; break;
+    }
+    
+    for (var i = -2; i <= 2; i++) {
+    	var _xx = _x + i;
+        
+        var _col = tilemap_get_at_pixel(stair_layer, _xx * 8, _y * 8);
+        
+        if (_col) {
+        	x = _xx * 8 + _marg;
+            break;
+        }
+    }
 }
 
 stair_state.run = function () {
-    var _hspd = lengthdir_x(1, stair_ang);
-    var _vspd = lengthdir_y(1, stair_ang);
+    create_attack();
     
     hspd = 0;
     vspd = 0;
+    
+    if (attacking) { 
+        image_speed = 1; 
+        exit; 
+    }
+    
+    var _hspd = lengthdir_x(1, stair_ang);
+    var _vspd = lengthdir_y(1, stair_ang);
+     
     image_speed = 0;
     
     if (up) {
+        stair_up = true;
         image_speed = 1;
     	hspd = _hspd;
         vspd = _vspd;
         sprite_index = spr_player_stairs_up;
+        
+        var _ground = [obj_collider, collider_layer];
+        var _on_ground = place_meeting(x, y + 1, _ground);
+        var _free = !place_meeting(x, y, _ground);
+        
+        var _x = x + lengthdir_x(16, stair_ang);
+        var _y = y + lengthdir_y(16, stair_ang);
+        
+        var _stair_end = !collision_point(_x, _y, stair_layer, true, true);
+        
+        if (_stair_end && _on_ground && _free) {
+        	state_change(idle_state);
+        }
     } 
     
     if (down) {
+        stair_up = false;
         image_speed = 1;
     	hspd = -_hspd;
         vspd = -_vspd;
         sprite_index = spr_player_stairs_down;
+        
+        var _ground = [obj_collider, collider_layer];
+        var _on_ground = place_meeting(x, y + 1, _ground);
+        var _free = !place_meeting(x, y, _ground);
+        
+        var _x = x + lengthdir_x(16, stair_ang + 180);
+        var _y = y + lengthdir_y(16, stair_ang + 180);
+        
+        var _stair_end = !collision_point(_x, _y, stair_layer, true, true);
+        
+        if (_stair_end && _on_ground && _free) {
+        	state_change(idle_state);
+        }
     } 
     
     if (keyboard_check_pressed(vk_backspace)) {
@@ -332,6 +400,9 @@ stair_state.run = function () {
 stair_state.finish = function () {
     //saindo do estado eu volto a colidir
     colliders = [obj_collider, collider_layer];
+    hspd = 0;
+    vspd = 0;
+    depth = 0;
 }
 #endregion
 
