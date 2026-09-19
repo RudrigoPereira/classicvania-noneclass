@@ -5,7 +5,7 @@ enum SUBWEAPON {
     KNIFE
 }
 
-global.subweapon = SUBWEAPON.AXE;
+global.subweapon = SUBWEAPON.HOLYWATER;
 
 function finished_animation(){
     if (img_ind > image_index) {

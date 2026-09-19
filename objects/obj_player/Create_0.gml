@@ -103,7 +103,11 @@ create_attack = function () {
             //criando o chicote
             whip_x = x - 9 * xscale;
             whip_y = y - sprite_yoffset + sprite_get_bbox_top(sprite_index) + 9;
-            my_whip = instance_create_depth(whip_x, whip_y, 0, _weapon, { image_xscale : xscale });
+            var _struct = {
+                image_xscale : xscale,
+                depth : depth-1
+            }
+            my_whip = instance_create_depth(whip_x, whip_y, 0, _weapon, _struct);
         }
     } else {
         switch (current_state) {
