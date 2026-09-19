@@ -7,7 +7,7 @@ terminei = false;
 alarm[0] = game_get_speed(gamespeed_fps) * 6;
 
 axe = function () {
-    hspeed = 2 * image_xscale;
+    hspeed = image_xscale;
 }
 
 knife = function () {
@@ -44,7 +44,8 @@ boomerang = function () {
 }
 
 holywater = function () {
-    hspeed = image_xscale;
+    hspeed = 2 * image_xscale;
+    vspeed = 2;
     
     var _col = [obj_collider, layer_tilemap_get_id("Level")];
     

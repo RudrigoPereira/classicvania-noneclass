@@ -1,3 +1,8 @@
+event_inherited();
+
+max_hp = 10;
+current_hp = 1;
+
 #region CRIANDO OS ESTADOS DO PLAYER
 
 idle_state   = new state();
